@@ -1,0 +1,14 @@
+{
+  "name": "twitterbot",
+  "version": "1.0.0",
+  "description": "Just messing around",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "author": "Ian C.",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.83.0"
+  }
+}
