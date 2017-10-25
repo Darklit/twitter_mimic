@@ -90,5 +90,5 @@ function directedScramble(name){
     }).catch(console.error);
   }).catch(console.error);
 }
-directedScramble('BradWray');
+directedScramble('Lmao_Ian');
 //automaticScramble();
