@@ -32,12 +32,16 @@ module.exports = {
       var tweet2Array = tweet2.split(" ");
       var tweet3Array = tweet3.split(" ");
 
-      var random1 = Math.floor((Math.random()*tweet1Array.length));
+      var random1 = Math.floor((Math.random()*tweet1Array.length/3));
       var random2 = (Math.floor((Math.random()*tweet2Array.length)))+random1;
       var random3 = (Math.floor((Math.random()*tweet3Array.length)))+random2;
-      console.log(tweet1);
-      console.log(tweet2);
-      console.log(tweet3);
+      console.log("Taken from: " + data[0].user.screen_name);
+      console.log('Random 1: ' + random1 + '\n');
+      console.log('Random 2: ' + random2 + '\n');
+      console.log('Random 3: ' + random3 + '\n');
+      console.log('Tweet 1: '+tweet1 + '\n');
+      console.log('Tweet 2: '+tweet2 + '\n');
+      console.log('Tweet 3: '+tweet3 + '\n');
       var newTweet = "";
       for(var i = 0; i <= random1; i++){
       //  console.log("1+");
@@ -54,9 +58,17 @@ module.exports = {
     //    console.log(i);
       if(tweet3Array[i] != undefined)  newTweet+=tweet3Array[i] + " ";
       }
+      while(newTweet.length>120){
+        var expandString = newTweet.split(" ");
+        newTweet = "";
+        for(var i = 0; i < expandString.length-1; i++){
+          newTweet+=expandString[i];
+        }
+      }
       while(newTweet.includes('@')){
         newTweet = newTweet.replace('@','');
       }
+      console.log("New tweet: " + newTweet + '\n');
       return newTweet.replace('@','');
     }
   }
