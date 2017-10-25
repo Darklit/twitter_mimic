@@ -20,130 +20,77 @@ var Twitter = new twit({
   access_token_secret: config.access_token_secret
 });
 
-function getUsers(searchTerm,fn,f1){
-  var screen_name = '';
-  Twitter.get('users/search',{
-    q: searchTerm,
-    page: Math.floor(Math.random()*10)
-  }, (err,data,body) => {
-    if(err) throw err;
-    if(searchTerm == "lmao_ian"){
-      screen_name = "Lmao_Ian";
-    }else{
-      screen_name = (data[Math.floor(Math.random()*data.length)].screen_name);
-    }
-    console.log('please');
-    fn(screen_name,f1);
+function getTweets(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('statuses/user_timeline',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function followUser(screenname){
-  //console.log(screenname + " name");
-  Twitter.post('friendships/create',{
-    screen_name: screenname
-  }, function(err,data,body){
-    if(err) throw err;
-    console.log(`Followed ${data.screen_name}`);
+function getUser(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('users/search',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
-}
-
-function nothing(body){
-  console.log(body);
 }
 
 function sendTweet(tweet){
-  console.log("sending tweet...");
-  Twitter.post('statuses/update',{
-    status: tweet
-  },(err,data,body) => {
-    if(err) return;
-    console.log(data.text);
-    theTweet = data;
-    carderBot.emit('randomTweet');
+  return new Promise((resolve,reject) => {
+    Twitter.post('statuses/update',tweet,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function copyThis(){
-  const users = [
-    "lmao_ian",
-    "Nebuchadneezar",
-    "dril",
-    "imkellam",
-    "BradWray",
-    "carder_bot",
-    "PapaJohns"
-  ];
-  getUsers(users[Math.floor(Math.random()*users.length)],getTweet,setStuff);
-  console.log("ran");
-}
-
-
-function setStuff(data){
-  console.log("setStuff");
-  for(var i = 0; i < 3; i++){
-    if(tweetMen[i] == undefined){
-      var nums = words.scramble(data);
-      tweetMen[i] = new GeneticTweet(nums[0],nums[1],nums[2]);
-    }
-  }
-  var tweetMan = tweetMen[Math.floor(Math.random()*tweetMen.length)];
-  sendTweet(words.scrambleNew(data,tweetMan.num1,tweetMan.num2,tweetMan.num3));
-}
-
-function getTweet(screenname,fn){
-  console.log("started");
-  Twitter.get('statuses/user_timeline',{
-    screen_name: screenname
-  },(err,data,body) => {
-    if(err) return;
-    //console.log(data[0].text);
-    if(screenname.toLowerCase() == 'lmao_ian'){
-      //console.log('here');
-      recentTweet = data[0];
-      carderBot.emit('newTweet');
-      //console.log(recentTweet);
-      //console.log("here bitch");
-      if(fn != null) fn(data);
-    }else{
-      //console.log(data[0]);
-      if(fn != null) fn(data);
-    }
+function directedUser(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('users/lookup',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function getLikes(){
-  Twitter.
+function automaticScramble(){
+  getUser({
+    q: letters[Math.floor(Math.random()*letters.length)],
+    page: Math.floor(Math.random()*10)
+  }).then(data => {
+    getTweets({
+      screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
+      include_rts: false
+    }).then(dat => {
+      sendTweet({
+        status: words.scramble(dat)
+      }).then(da => {
+        console.log("finished");
+      })
+      .catch(console.error);
+    }).catch(console.error);
+  }).catch(console.error);
 }
 
-function retweet(tweet){
-  console.log('ehy');
-  Twitter.post('statuses/retweet/:id',{
-    id: tweet.id_str
-  },(err,data,body) => {
-    if(err) return;
-    console.log("retweeted");
-  });
+function directedScramble(name){
+  directedUser({
+    screen_name: name
+  }).then(data => {
+    getTweets({
+      screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
+      include_rts: false
+    }).then(dat => {
+      sendTweet({
+        status: words.scramble(dat)
+      }).then(da => {
+        console.log("finished");
+      })
+      .catch(console.error);
+    }).catch(console.error);
+  }).catch(console.error);
 }
-
-
-//getUsers("lmao_ian",getTweet,null);
-
-/*carderBot.on('newTweet',function(){
-  retweet(recentTweet);
-});
-carderBot.on('randomTweet',function(){
-
-});
-setInterval(function(){
-  copyThis();
-},5000);
-*/
-/*
-setInterval(function(){
-  getTweet("lmao_ian",null);
-},1000);
-
-setInterval(function(){
-  getUsers(letters[Math.floor(Math.random()*letters.length)],followUser,null);
-},10000);
-*/
+directedScramble('Lmao_Ian');
+//automaticScramble();
