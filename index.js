@@ -1,11 +1,13 @@
 const twit = require("twit");
 const config = require("./config.js");
 const words = require("./words.js");
+const GeneticTweet = require('./genetic.js');
 var recentTweet = {
   text: "nothing"
 };
 var sendTweets = [];
-
+var theTweet;
+var tweetMen = [];
 const letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
 
 var events = require('events');
@@ -56,6 +58,8 @@ function sendTweet(tweet){
   },(err,data,body) => {
     if(err) return;
     console.log(data.text);
+    theTweet = data;
+    carderBot.emit('randomTweet');
   });
 }
 
@@ -76,7 +80,14 @@ function copyThis(){
 
 function setStuff(data){
   console.log("setStuff");
-  sendTweet(words.scramble(data));
+  for(var i = 0; i < 3; i++){
+    if(tweetMen[i] == undefined){
+      var nums = words.scramble(data);
+      tweetMen[i] = new GeneticTweet(nums[0],nums[1],nums[2]);
+    }
+  }
+  var tweetMan = tweetMen[Math.floor(Math.random()*tweetMen.length)];
+  sendTweet(words.scrambleNew(data,tweetMan.num1,tweetMan.num2,tweetMan.num3));
 }
 
 function getTweet(screenname,fn){
@@ -100,6 +111,10 @@ function getTweet(screenname,fn){
   });
 }
 
+function getLikes(){
+  Twitter.
+}
+
 function retweet(tweet){
   console.log('ehy');
   Twitter.post('statuses/retweet/:id',{
@@ -110,14 +125,19 @@ function retweet(tweet){
   });
 }
 
+
 //getUsers("lmao_ian",getTweet,null);
 
-carderBot.on('newTweet',function(){
+/*carderBot.on('newTweet',function(){
   retweet(recentTweet);
+});
+carderBot.on('randomTweet',function(){
+
 });
 setInterval(function(){
   copyThis();
 },5000);
+*/
 /*
 setInterval(function(){
   getTweet("lmao_ian",null);
