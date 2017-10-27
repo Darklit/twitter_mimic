@@ -75,6 +75,28 @@ function automaticScramble(){
   }).catch(console.error);
 }
 
+function getDMs(){
+  return new Promise((resolve,reject)=> {
+    Twitter.get('direct_messages',{
+      count: 1
+    },(err,data,body) => {
+    	if(err) reject(Error(err));
+			else resolve(data);
+    }
+  });
+}
+
+function checkCommands(){
+  getDMs().then(data => {
+     if(data[0].text == 'sendTweet') carderBot.emit('command','sendTweet');
+    else console.log(data[0].text);
+  }).catch(console.error);
+}
+  
+carderBot.on('command',(cmd) => {
+  if(cmd == 'sendTweet') automaticScramble();
+});
+
 function directedScramble(name){
   directedUser({
     screen_name: name
