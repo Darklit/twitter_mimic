@@ -59,10 +59,11 @@ module.exports = {
       if(tweet3Array[i] != undefined)  newTweet+=tweet3Array[i] + " ";
       }
       while(newTweet.length>120){
+        console.log("stuck");
         var expandString = newTweet.split(" ");
         newTweet = "";
         for(var i = 0; i < expandString.length-1; i++){
-          newTweet+=expandString[i];
+          newTweet+=expandString[i] + " ";
         }
       }
       while(newTweet.includes('@')){

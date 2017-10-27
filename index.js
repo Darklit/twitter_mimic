@@ -102,7 +102,7 @@ function directedScramble(name){
     }).catch(console.error);
   }).catch(console.error);
 }
-directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+//directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
 var automaticScramble = function(){
   getUser({
     q: letters[Math.floor(Math.random()*letters.length)],
@@ -133,6 +133,8 @@ var automaticScramble = function(){
 }
 var user1;
 var works = false;
+
+automaticScramble();
 /*directedUser({
   screen_name: config.users[0]
 }).then(data => {
