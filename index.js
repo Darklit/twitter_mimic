@@ -112,12 +112,22 @@ var automaticScramble = function(){
       screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
       include_rts: false
     }).then(dat => {
-      sendTweet({
-        status: words.scramble(dat)
-      }).then(da => {
-        console.log("finished");
-      })
-      .catch(console.error);
+      var stuff = words.scramble(dat);
+      if(stuff.tweet != undefined){
+        sendTweet({
+          status: stuff.tweet
+        }).then(da => {
+          console.log(da.id);
+          if(da.id != undefined) {
+            sendTweet({
+              status: `@carder_bot Tweets scrambled from ${stuff.from}`,
+              in_reply_to_status_id: da.id_str,
+            }).then(d => {
+              console.log('finished');
+            }).catch(console.error);
+          }
+        }).catch(console.error);
+      }
     }).catch(console.error);
   }).catch(console.error);
 }
