@@ -13,12 +13,24 @@ const letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p'
 var events = require('events');
 var carderBot = new events.EventEmitter();
 
+var recentCmd;
 var Twitter = new twit({
   consumer_key: config.consumer_key,
   consumer_secret: config.consumer_key_secret,
   access_token: config.access_token,
   access_token_secret: config.access_token_secret
 });
+
+const fs = require('fs');
+
+if(fs.existsSync('./recentCmd.txt')){
+  recentCmd = fs.readFileSync('./recentCmd.txt');
+}else{
+  fs.appendFile('./recentCmd.txt','',(err) => {
+    if (err) throw err;
+    recentCmd = "";
+  });
+}
 
 function getTweets(search){
   return new Promise((resolve,reject) => {
@@ -102,7 +114,29 @@ function directedScramble(name){
     }).catch(console.error);
   }).catch(console.error);
 }
-//directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+function getDMs(){
+  return new Promise((resolve,reject)=> {
+    Twitter.get('direct_messages',{
+      count: 1
+    },(err,data,body) => {
+    	if(err) reject(Error(err));
+			else resolve(data);
+    });
+  });
+}
+
+var checkCommands = function(){
+  getDMs().then(data => {
+
+  }).catch(console.error);
+}
+
+carderBot.on('command',(cmd) => {
+  if(cmd == 'sendTweet') directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+  else if(cmd == 'stop') process.exit();
+});
+
+directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
 var automaticScramble = function(){
   getUser({
     q: letters[Math.floor(Math.random()*letters.length)],
@@ -134,7 +168,29 @@ var automaticScramble = function(){
 var user1;
 var works = false;
 
-automaticScramble();
+Twitter.stream('user').on('direct_message',(dm) => {
+  var data = dm.direct_message;
+  if(data.text == 'sendTweet' && data.id != recentCmd && recentCmd != undefined){
+    recentCmd = data.id;
+    fs.unlink('./recentCmd.txt',(err) => {
+      if(err) throw err;
+      fs.writeFileSync('./recentCmd.txt',data.id);
+    });
+     carderBot.emit('command','sendTweet');
+   }else if(data.text == 'stop' && data.sender.screen_name == "Lmao_Ian" && data.id != recentCmd && recentCmd != undefined){
+     console.log("here");
+     recentCmd = data.id;
+     fs.unlink('./recentCmd.txt',(err) => {
+       if(err) throw err;
+       fs.writeFile('./recentCmd.txt',data.id,(err) => {
+         if (err) throw err;
+         carderBot.emit('command','stop');
+       })
+     });
+   }
+});
+//automaticScramble();
+//setInterval(checkCommands,1000);
 /*directedUser({
   screen_name: config.users[0]
 }).then(data => {
@@ -147,4 +203,4 @@ automaticScramble();
   }).catch(console.error);
 }).catch(console.error);
 */
-//setInterval(automaticScramble,1000*120);
+//setInterval(automaticScramble,1000*5);

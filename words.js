@@ -3,20 +3,23 @@ module.exports = {
     console.log(data);
     if(data[0] == undefined){
       console.log("broke");
-      return '';
+      return {
+        tweet: '',
+        from: 'undefined'
+      };
     }else{
       var tweet1 = data[Math.floor(Math.random()*data.length)].text;
       var tweet2 = data[Math.floor(Math.random()*data.length)].text;
       var tweet3 = data[Math.floor(Math.random()*data.length)].text;
       var tries = 0;
       while(tweet1 == tweet2 || tweet1==tweet3 || tweet2 == tweet3){
-        console.log("stuck");
+        console.log(tries);
         tweet1 = data[Math.floor(Math.random()*data.length)].text;
         tweet2 = data[Math.floor(Math.random()*data.length)].text;
         tweet3 = data[Math.floor(Math.random()*data.length)].text;
         tries++;
         if(tries>10000){
-          return '';
+          break;
         }
       }
       while(tweet1.includes("RT")){
@@ -59,10 +62,10 @@ module.exports = {
       if(tweet3Array[i] != undefined)  newTweet+=tweet3Array[i] + " ";
       }
       while(newTweet.length>120){
-        console.log("stuck");
         var expandString = newTweet.split(" ");
+        console.log(expandString);
         newTweet = "";
-        for(var i = 0; i < expandString.length-1; i++){
+        for(var i = 0; i < expandString.length-2; i++){
           newTweet+=expandString[i] + " ";
         }
       }
@@ -87,7 +90,7 @@ module.exports = {
       var tweet3 = data[Math.floor(Math.random()*data.length)].text;
       var tries = 0;
       while(tweet1 == tweet2 || tweet1==tweet3 || tweet2 == tweet3){
-        console.log("stuck");
+        console.log("here");
         tweet1 = data[Math.floor(Math.random()*data.length)].text;
         tweet2 = data[Math.floor(Math.random()*data.length)].text;
         tweet3 = data[Math.floor(Math.random()*data.length)].text;
@@ -160,7 +163,7 @@ module.exports = {
       var tweet3 = data[Math.floor(Math.random()*data.length)].text;
       var tries = 0;
       while(tweet1 == tweet2 || tweet1==tweet3 || tweet2 == tweet3){
-        console.log("stuck");
+        console.log("here");
         tweet1 = data[Math.floor(Math.random()*data.length)].text;
         tweet2 = data[Math.floor(Math.random()*data.length)].text;
         tweet3 = data[Math.floor(Math.random()*data.length)].text;
