@@ -35,6 +35,24 @@ module.exports = {
       var tweet2Array = tweet2.split(" ");
       var tweet3Array = tweet3.split(" ");
 
+      var tweet1ArrayRefined = [];
+      var tweet2ArrayRefined = [];
+      var tweet3ArrayRefined = [];
+
+      for(var i = 0; i < tweet1Array.length; i++){
+        if(!tweet1Array[i].includes('@')) tweet1ArrayRefined[tweet1ArrayRefined.length] = tweet1Array[i];
+      }
+      for(var i = 0; i < tweet2Array.length; i++){
+        if(!tweet2Array[i].includes('@')) tweet2ArrayRefined[tweet2ArrayRefined.length] = tweet2Array[i];
+      }
+      for(var i = 0; i < tweet3Array.length; i++){
+        if(!tweet3Array[i].includes('@')) tweet3ArrayRefined[tweet3ArrayRefined.length] = tweet3Array[i];
+      }
+
+      tweet1Array = tweet1ArrayRefined;
+      tweet2Array = tweet2ArrayRefined;
+      tweet3Array = tweet3ArrayRefined;
+
       var random1 = Math.floor((Math.random()*tweet1Array.length/3));
       var random2 = (Math.floor((Math.random()*tweet2Array.length)))+random1;
       var random3 = (Math.floor((Math.random()*tweet3Array.length)))+random2;
