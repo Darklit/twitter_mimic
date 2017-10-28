@@ -1,16 +1,19 @@
 const twit = require("twit");
 const config = require("./config.js");
 const words = require("./words.js");
+const GeneticTweet = require('./genetic.js');
 var recentTweet = {
   text: "nothing"
 };
 var sendTweets = [];
-
+var theTweet;
+var tweetMen = [];
 const letters = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
 
 var events = require('events');
 var carderBot = new events.EventEmitter();
 
+var recentCmd;
 var Twitter = new twit({
   consumer_key: config.consumer_key,
   consumer_secret: config.consumer_key_secret,
@@ -18,112 +21,186 @@ var Twitter = new twit({
   access_token_secret: config.access_token_secret
 });
 
-function getUsers(searchTerm,fn,f1){
-  var screen_name = '';
-  Twitter.get('users/search',{
-    q: searchTerm,
-    page: Math.floor(Math.random()*10)
-  }, (err,data,body) => {
-    if(err) throw err;
-    if(searchTerm == "lmao_ian"){
-      screen_name = "Lmao_Ian";
-    }else{
-      screen_name = (data[Math.floor(Math.random()*data.length)].screen_name);
-    }
-    console.log('please');
-    fn(screen_name,f1);
+const fs = require('fs');
+
+if(fs.existsSync('./recentCmd.txt')){
+  recentCmd = fs.readFileSync('./recentCmd.txt');
+}else{
+  fs.appendFile('./recentCmd.txt','',(err) => {
+    if (err) throw err;
+    recentCmd = "";
   });
 }
 
-function followUser(screenname){
-  //console.log(screenname + " name");
-  Twitter.post('friendships/create',{
-    screen_name: screenname
-  }, function(err,data,body){
-    if(err) throw err;
-    console.log(`Followed ${data.screen_name}`);
+function getTweets(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('statuses/user_timeline',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function nothing(body){
-  console.log(body);
+function getUser(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('users/search',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
+  });
 }
 
 function sendTweet(tweet){
-  console.log("sending tweet...");
-  Twitter.post('statuses/update',{
-    status: tweet
-  },(err,data,body) => {
-    if(err) return;
-    console.log(data.text);
+  return new Promise((resolve,reject) => {
+    Twitter.post('statuses/update',tweet,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function copyThis(){
-  const users = [
-    "lmao_ian",
-    "Nebuchadneezar",
-    "dril",
-    "imkellam",
-    "BradWray",
-    "carder_bot",
-    "PapaJohns",
-    "realDonaldTrump"
-  ];
-  getUsers(users[Math.floor(Math.random()*users.length)],getTweet,setStuff);
-  console.log("ran");
-}
-
-
-function setStuff(data){
-  console.log("setStuff");
-  sendTweet(words.scramble(data));
-}
-
-function getTweet(screenname,fn){
-  console.log("started");
-  Twitter.get('statuses/user_timeline',{
-    screen_name: screenname
-  },(err,data,body) => {
-    if(err) return;
-    //console.log(data[0].text);
-    if(screenname.toLowerCase() == 'lmao_ian'){
-      //console.log('here');
-      recentTweet = data[0];
-      carderBot.emit('newTweet');
-      //console.log(recentTweet);
-      //console.log("here bitch");
-      if(fn != null) fn(data);
-    }else{
-      //console.log(data[0]);
-      if(fn != null) fn(data);
-    }
+function directedUser(search){
+  return new Promise((resolve,reject) => {
+    Twitter.get('users/lookup',search,(err,data,body)=>{
+      if(err) reject(Error(err));
+      else resolve(data);
+    });
   });
 }
 
-function retweet(tweet){
-  console.log('ehy');
-  Twitter.post('statuses/retweet/:id',{
-    id: tweet.id_str
-  },(err,data,body) => {
-    if(err) return;
-    console.log("retweeted");
+function automaticScramble(){
+  getUser({
+    q: letters[Math.floor(Math.random()*letters.length)],
+    page: Math.floor(Math.random()*10)
+  }).then(data => {
+    getTweets({
+      screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
+      include_rts: false
+    }).then(dat => {
+      sendTweet({
+        status: words.scramble(dat).tweet
+      }).then(da => {
+        console.log(da[0]);
+      })
+      .catch(console.error);
+    }).catch(console.error);
+  }).catch(console.error);
+}
+
+function directedScramble(name){
+  directedUser({
+    screen_name: name
+  }).then(data => {
+    getTweets({
+      screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
+      include_rts: false
+    }).then(dat => {
+      var stuff = words.scramble(dat);
+      if(stuff.tweet != undefined){
+        sendTweet({
+          status: stuff.tweet
+        }).then(da => {
+          console.log(da.id);
+          if(da.id != undefined) {
+            sendTweet({
+              status: `@carder_bot Tweets scrambled from ${stuff.from}`,
+              in_reply_to_status_id: da.id_str,
+            }).then(d => {
+              console.log('finished');
+            }).catch(console.error);
+          }
+        }).catch(console.error);
+      }
+    }).catch(console.error);
+  }).catch(console.error);
+}
+function getDMs(){
+  return new Promise((resolve,reject)=> {
+    Twitter.get('direct_messages',{
+      count: 1
+    },(err,data,body) => {
+    	if(err) reject(Error(err));
+			else resolve(data);
+    });
   });
 }
 
-//getUsers("lmao_ian",getTweet,null);
+var checkCommands = function(){
+  getDMs().then(data => {
 
-carderBot.on('newTweet',function(){
-  retweet(recentTweet);
+  }).catch(console.error);
+}
+
+carderBot.on('command',(cmd) => {
+  if(cmd == 'sendTweet') directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+  else if(cmd == 'stop') process.exit();
 });
-setInterval(function(){
-  copyThis();
-},75000);
-/*
-setInterval(function(){
-  getTweet("lmao_ian",null);
-},1000);
+
+directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+var automaticScramble = function(){
+  getUser({
+    q: letters[Math.floor(Math.random()*letters.length)],
+    page: Math.floor(Math.random()*10)
+  }).then(data => {
+    getTweets({
+      screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
+      include_rts: false
+    }).then(dat => {
+      var stuff = words.scramble(dat);
+      if(stuff.tweet != undefined){
+        sendTweet({
+          status: stuff.tweet
+        }).then(da => {
+          console.log(da.id);
+          if(da.id != undefined) {
+            sendTweet({
+              status: `@carder_bot Tweets scrambled from ${stuff.from}`,
+              in_reply_to_status_id: da.id_str,
+            }).then(d => {
+              console.log('finished');
+            }).catch(console.error);
+          }
+        }).catch(console.error);
+      }
+    }).catch(console.error);
+  }).catch(console.error);
+}
+var user1;
+var works = false;
+
+Twitter.stream('user').on('direct_message',(dm) => {
+  var data = dm.direct_message;
+  if(data.text == 'sendTweet' && data.id != recentCmd && recentCmd != undefined){
+    recentCmd = data.id;
+    fs.unlink('./recentCmd.txt',(err) => {
+      if(err) throw err;
+      fs.writeFileSync('./recentCmd.txt',data.id);
+    });
+     carderBot.emit('command','sendTweet');
+   }else if(data.text == 'stop' && data.sender.screen_name == "Lmao_Ian" && data.id != recentCmd && recentCmd != undefined){
+     console.log("here");
+     recentCmd = data.id;
+     fs.unlink('./recentCmd.txt',(err) => {
+       if(err) throw err;
+       fs.writeFile('./recentCmd.txt',data.id,(err) => {
+         if (err) throw err;
+         carderBot.emit('command','stop');
+       })
+     });
+   }
+});
+//automaticScramble();
+//setInterval(checkCommands,1000);
+/*directedUser({
+  screen_name: config.users[0]
+}).then(data => {
+  getTweets({
+    screen_name: data[0].screen_name,
+    include_rts: false
+  }).then(dat => {
+    var randomNums = words.generateNums(dat);
+    users1 = new GeneticTweet(randomNums[0],randomNums[1],randomNums[2]);
+  }).catch(console.error);
+}).catch(console.error);
 */
-setInterval(function(){
-  getUsers(letters[Math.floor(Math.random()*letters.length)],followUser,null);
-},30000);
+//setInterval(automaticScramble,1000*5);
