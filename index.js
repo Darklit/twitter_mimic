@@ -67,7 +67,8 @@ function copyThis(){
     "imkellam",
     "BradWray",
     "carder_bot",
-    "PapaJohns"
+    "PapaJohns",
+    "realDonaldTrump"
   ];
   getUsers(users[Math.floor(Math.random()*users.length)],getTweet,setStuff);
   console.log("ran");
@@ -117,13 +118,12 @@ carderBot.on('newTweet',function(){
 });
 setInterval(function(){
   copyThis();
-},5000);
+},75000);
 /*
 setInterval(function(){
   getTweet("lmao_ian",null);
 },1000);
-
+*/
 setInterval(function(){
   getUsers(letters[Math.floor(Math.random()*letters.length)],followUser,null);
-},10000);
-*/
+},30000);
