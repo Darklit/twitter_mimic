@@ -163,11 +163,8 @@ module.exports = {
           newTweet+=expandString[i];
         }
       }
-      while(newTweet.includes('@')){
-        newTweet = newTweet.replace('@','');
-      }
       console.log("New tweet: " + newTweet + '\n');
-      return newTweet.replace('@','');
+      return newTweet;
     }
   },
   generateNums: function(data){
