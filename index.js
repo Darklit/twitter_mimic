@@ -23,6 +23,17 @@ var Twitter = new twit({
 
 const fs = require('fs');
 
+var geneticTweets = [];
+
+if(fs.existsSync('./tweets.json')){
+  var temp = JSON.parse(fs.readFileSync('./tweets.json'));
+  if(temp[0] != undefined) geneticTweets[0] = new GeneticTweet(temp[0]);
+  else if(temp[1] != undefined) geneticTweets[1] = new GeneticTweet(temp[1]);
+  else if(temp[2] != undefined) geneticTweets[2] = new GeneticTweet(temp[2]);
+}else{
+  fs.appendFileSync('./tweets.json','');
+}
+
 if(fs.existsSync('./recentCmd.txt')){
   recentCmd = fs.readFileSync('./recentCmd.txt');
 }else{
@@ -87,6 +98,69 @@ function automaticScramble(){
   }).catch(console.error);
 }
 
+function setupClass(user){
+  var getNums = function(name,index){
+    directedUser({
+      screen_name: name
+    }).then(data => {
+      getTweets({
+        screen_name: name,
+        include_rts: false
+      }).then(dat => {
+        var nums = words.generateNums(dat);
+        geneticTweets[index] = new GeneticTweet(nums[0],nums[1],nums[2],words.evolvedScramble(dat,nums[0],nums[1],nums[2]));
+      });
+    });
+  }
+  if(geneticTweets[0] == undefined){
+    getNums(user,0);
+  }else if(geneticTweets[1] == undefined){
+    getNums(user,1);
+  }else if(geneticTweets[2] == undefined){
+    getNums(user,2);
+  }
+}
+
+setupClass('lmao_ian');
+var checked = false;
+
+var checkThis = function(){
+  if(!checked){
+    if(geneticTweets[2] != undefined){
+      sendTweet({
+        status: geneticTweets[1].text
+      }).then(dat => {
+        var savedObject = [];
+        for(var i = 0; i < geneticTweets.length; i++){
+          if(geneticTweets[i] != undefined){
+            savedObject[i] = {
+              num1: geneticTweets[i].num1,
+              num2: geneticTweets[i].num2,
+              num3: geneticTweets[i].num3,
+              text: geneticTweets[i].text,
+              user: geneticTweets[i].user,
+              fitness: geneticTweets[i].fitness
+            };
+          }
+        }
+        fs.unlink('./tweets.json',(err) => {
+          fs.writeFileSync('./tweets.json',JSON.stringify(savedObject));
+        });
+      }).catch(console.error);
+      checked = true;
+    }
+  }
+};
+
+
+setInterval(checkThis,1000);
+
+if(geneticTweets[0] != undefined){
+  console.log(geneticTweets[0]);
+}else{
+  console.log('not yet made');
+}
+
 function directedScramble(name){
   directedUser({
     screen_name: name
@@ -136,7 +210,7 @@ carderBot.on('command',(cmd) => {
   else if(cmd == 'stop') process.exit();
 });
 
-directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
+//directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
 var automaticScramble = function(){
   getUser({
     q: letters[Math.floor(Math.random()*letters.length)],
@@ -168,7 +242,9 @@ var automaticScramble = function(){
 var user1;
 var works = false;
 
-Twitter.stream('user').on('direct_message',(dm) => {
+var stream = Twitter.stream('user');
+
+stream.on('direct_message',(dm) => {
   var data = dm.direct_message;
   if(data.text == 'sendTweet' && data.id != recentCmd && recentCmd != undefined){
     recentCmd = data.id;
@@ -188,6 +264,20 @@ Twitter.stream('user').on('direct_message',(dm) => {
        })
      });
    }
+});
+
+stream.on('user_event',(stuff) => {
+  if(stuff.event == 'favorite'){
+    console.log('Favorite!!');
+    console.log(Object.keys(stuff));
+    console.log('\n\n' + stuff.source.screen_name);
+    for(var i = 0; i < geneticTweets.length; i++){
+      if(geneticTweets[i].text == stuff.target_object.text){
+        if(stuff.source.screen_name == 'Lmao_Ian') geneticTweets[i].fitness+=3;
+        else(geneticTweets[i].fitness+=1);
+      }
+    }
+  } else console.log(stuff.event);
 });
 //automaticScramble();
 //setInterval(checkCommands,1000);
