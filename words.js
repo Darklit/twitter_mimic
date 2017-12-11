@@ -93,7 +93,10 @@ module.exports = {
       console.log("New tweet: " + newTweet + '\n');
       return {
         tweet: newTweet.replace('@',''),
-        from: data[0].user.screen_name
+        from: data[0].user.screen_name,
+        num1: random1,
+        num2: random2,
+        num3: random3
       };
     }
   },
@@ -164,7 +167,13 @@ module.exports = {
         }
       }
       console.log("New tweet: " + newTweet + '\n');
-      return newTweet;
+      return {
+        tweet: newTweet.replace('@',''),
+        from: data[0].user.screen_name,
+        num1: random1,
+        num2: random2,
+        num3: random3
+      };
     }
   },
   generateNums: function(data){

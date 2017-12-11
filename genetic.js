@@ -1,9 +1,12 @@
 class GeneticTweet{
-  constructor(num1,num2,num3){
+  constructor(num1,num2,num3,id,user,text){
     this.num1 = num1;
     this.num2 = num2;
     this.num3 = num3;
     this.fitness = 0;
+    this.id = id;
+    this.user = user;
+    this.text = text;
   }
   breed(parent,hey){
     var pool = [];
@@ -39,6 +42,18 @@ class GeneticTweet{
         this.num1 = Math.floor(Math.random()*10);
       }
     }
+  }
+  toJSON(){
+    var jsonObj = {
+      num1: this.num1,
+      num2: this.num2,
+      num3: this.num3,
+      fitness: this.fitness,
+      id: this.id,
+      user: this.user,
+      text: this.text
+    };
+    return jsonObj;
   }
 }
 
