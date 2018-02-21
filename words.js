@@ -1,6 +1,5 @@
 module.exports = {
   scramble: function(data){
-    console.log(data);
     if(data[0] == undefined){
       console.log("broke");
       return {
@@ -101,10 +100,12 @@ module.exports = {
     }
   },
   evolvedScramble: function(data,num1,num2,num3){
-    console.log(num1);
     if(data[0] == undefined){
       console.log("broke");
-      return '';
+      return {
+        tweet: '',
+        from: 'undefined'
+      };
     }else{
       var tweet1 = data[Math.floor(Math.random()*data.length)].text;
       var tweet2 = data[Math.floor(Math.random()*data.length)].text;
@@ -179,9 +180,10 @@ module.exports = {
       }
       while(newTweet.length>120){
         var expandString = newTweet.split(" ");
+        console.log(expandString);
         newTweet = "";
-        for(var i = 0; i < expandString.length-1; i++){
-          newTweet+=expandString[i];
+        for(var i = 0; i < expandString.length-2; i++){
+          newTweet+=expandString[i] + " ";
         }
       }
       console.log("New tweet: " + newTweet + '\n');

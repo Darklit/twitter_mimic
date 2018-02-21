@@ -32,6 +32,17 @@ var tweetObjects = [];
 
 const fs = require('fs');
 
+var geneticTweets = [];
+
+if(fs.existsSync('./tweets.json')){
+  var temp = JSON.parse(fs.readFileSync('./tweets.json'));
+  if(temp[0] != undefined) geneticTweets[0] = new GeneticTweet(temp[0]);
+  else if(temp[1] != undefined) geneticTweets[1] = new GeneticTweet(temp[1]);
+  else if(temp[2] != undefined) geneticTweets[2] = new GeneticTweet(temp[2]);
+}else{
+  fs.appendFileSync('./tweets.json','');
+}
+
 if(fs.existsSync('./recentCmd.txt')){
   recentCmd = fs.readFileSync('./recentCmd.txt');
 }else{
@@ -111,7 +122,70 @@ function automaticScramble(){
     }).catch(console.error);
   }).catch(console.error);
 }
+/*
+function setupClass(user){
+  var getNums = function(name,index){
+    directedUser({
+      screen_name: name
+    }).then(data => {
+      getTweets({
+        screen_name: name,
+        include_rts: false
+      }).then(dat => {
+        var nums = words.generateNums(dat);
+        geneticTweets[index] = new GeneticTweet(nums[0],nums[1],nums[2],words.evolvedScramble(dat,nums[0],nums[1],nums[2]));
+      });
+    });
+  }
+  if(geneticTweets[0] == undefined){
+    getNums(user,0);
+  }else if(geneticTweets[1] == undefined){
+    getNums(user,1);
+  }else if(geneticTweets[2] == undefined){
+    getNums(user,2);
+  }
+}
 
+setupClass('lmao_ian');
+var checked = false;
+
+var checkThis = function(){
+  if(!checked){
+    if(geneticTweets[2] != undefined){
+      sendTweet({
+        status: geneticTweets[1].text
+      }).then(dat => {
+        var savedObject = [];
+        for(var i = 0; i < geneticTweets.length; i++){
+          if(geneticTweets[i] != undefined){
+            savedObject[i] = {
+              num1: geneticTweets[i].num1,
+              num2: geneticTweets[i].num2,
+              num3: geneticTweets[i].num3,
+              text: geneticTweets[i].text,
+              user: geneticTweets[i].user,
+              fitness: geneticTweets[i].fitness
+            };
+          }
+        }
+        fs.unlink('./tweets.json',(err) => {
+          fs.writeFileSync('./tweets.json',JSON.stringify(savedObject));
+        });
+      }).catch(console.error);
+      checked = true;
+    }
+  }
+};
+
+
+setInterval(checkThis,1000);
+
+if(geneticTweets[0] != undefined){
+  console.log(geneticTweets[0]);
+}else{
+  console.log('not yet made');
+}
+*/
 function directedScramble(name){
   directedUser({
     screen_name: name
@@ -151,12 +225,6 @@ function getDMs(){
 			else resolve(data);
     });
   });
-}
-
-var checkCommands = function(){
-  getDMs().then(data => {
-
-  }).catch(console.error);
 }
 
 carderBot.on('command',(cmd) => {

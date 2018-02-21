@@ -13,15 +13,13 @@ class GeneticTweet{
     var pool2 = [];
     var pool3 = [];
     var t = hey;
-    console.log(parent);
-    console.log(this);
-    for(var i = 0; i < this.fitness; i++){
+    for(var i = 0; i <= this.fitness; i++){
       //console.log("running " + i);
       pool[pool.length] = this.num1;
       pool2[pool2.length] = this.num2;
       pool3[pool3.length] = this.num3;
     }
-    for(var i = 0; i < parent.fitness; i++){
+    for(var i = 0; i <= parent.fitness; i++){
       //console.log("running " + i);
       pool[pool.length] = parent.num1;
       pool2[pool2.length] = parent.num2;
