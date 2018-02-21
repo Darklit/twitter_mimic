@@ -101,7 +101,7 @@ module.exports = {
     }
   },
   evolvedScramble: function(data,num1,num2,num3){
-    console.log(data);
+    console.log(num1);
     if(data[0] == undefined){
       console.log("broke");
       return '';
@@ -111,12 +111,12 @@ module.exports = {
       var tweet3 = data[Math.floor(Math.random()*data.length)].text;
       var tries = 0;
       while(tweet1 == tweet2 || tweet1==tweet3 || tweet2 == tweet3){
-        console.log("here");
         tweet1 = data[Math.floor(Math.random()*data.length)].text;
         tweet2 = data[Math.floor(Math.random()*data.length)].text;
         tweet3 = data[Math.floor(Math.random()*data.length)].text;
         tries++;
         if(tries>10000){
+          console.log('FAILED');
           return '';
         }
       }
@@ -132,6 +132,24 @@ module.exports = {
       var tweet1Array = tweet1.split(" ");
       var tweet2Array = tweet2.split(" ");
       var tweet3Array = tweet3.split(" ");
+
+      var tweet1ArrayRefined = [];
+      var tweet2ArrayRefined = [];
+      var tweet3ArrayRefined = [];
+
+      for(var i = 0; i < tweet1Array.length; i++){
+        if(!tweet1Array[i].includes('@')) tweet1ArrayRefined[tweet1ArrayRefined.length] = tweet1Array[i];
+      }
+      for(var i = 0; i < tweet2Array.length; i++){
+        if(!tweet2Array[i].includes('@')) tweet2ArrayRefined[tweet2ArrayRefined.length] = tweet2Array[i];
+      }
+      for(var i = 0; i < tweet3Array.length; i++){
+        if(!tweet3Array[i].includes('@')) tweet3ArrayRefined[tweet3ArrayRefined.length] = tweet3Array[i];
+      }
+
+      tweet1Array = tweet1ArrayRefined;
+      tweet2Array = tweet2ArrayRefined;
+      tweet3Array = tweet3ArrayRefined;
 
       var random1 = num1;
       var random2 = num2;
@@ -187,12 +205,13 @@ module.exports = {
       var tweet3 = data[Math.floor(Math.random()*data.length)].text;
       var tries = 0;
       while(tweet1 == tweet2 || tweet1==tweet3 || tweet2 == tweet3){
-        console.log("here");
+        console.log(tries);
         tweet1 = data[Math.floor(Math.random()*data.length)].text;
         tweet2 = data[Math.floor(Math.random()*data.length)].text;
         tweet3 = data[Math.floor(Math.random()*data.length)].text;
         tries++;
         if(tries>10000){
+          console.log('FAILED');
           return '';
         }
       }

@@ -46,7 +46,8 @@ if(fs.existsSync('./tweets.json')){
     tweets = JSON.parse(fs.readFileSync('./tweets.json'));
     for(var i = 0; i < Object.keys(tweets).length; i++){
       var tempTweet = tweets[Object.keys(tweets)[i]];
-      tweetObjects[tweets[Object.keys(tweets)[i]].id] = new GeneticTweet(tempTweet.num1,tempTweet.num2,tempTweet.num3,tempTweet.fitness,tempTweet.id,tempTweet.user,tempTweet.text);
+      tweetObjects[tweets[Object.keys(tweets)[i]].id] = new GeneticTweet(tempTweet.num1,tempTweet.num2,tempTweet.num3,tempTweet.id,tempTweet.user,tempTweet.text);
+      tweetObjects[tweets[Object.keys(tweets)[i]].id].fitness = tempTweet.fitness;
     }
   }
 }else{
@@ -170,7 +171,8 @@ var geneticScramble = function(tweetObj){
   }).then(data => {
     getTweets({
       screen_name: data[Math.floor(Math.random()*data.length)].screen_name,
-      include_rts: false
+      include_rts: false,
+      count: 50
     }).then(dat => {
       var stuff = words.evolvedScramble(dat,tweetObj.num1,tweetObj.num2,tweetObj.num3);
       if(stuff.tweet != undefined){
@@ -179,7 +181,7 @@ var geneticScramble = function(tweetObj){
         }).then(da => {
           console.log(da.id);
           if(da.id != undefined) {
-            var newTweetObj = new GeneticTweet(stuff.num1,stuff.num2,stuff.num3,tweetObj.id,stuff.from,stuff.tweet);
+            var newTweetObj = new GeneticTweet(stuff.num1,stuff.num2,stuff.num3,Object.keys(tweets).length,stuff.from,stuff.tweet);
             tweets[`${newTweetObj.id}`] = newTweetObj.toJSON();
             tweetObjects[newTweetObj.id] = newTweetObj;
             saveTweets();
@@ -260,13 +262,11 @@ userStream.on('direct_message',(dm) => {
 });
 
 userStream.on('favorite',(tweet) => {
-  console.log("Favorited!");
-  console.log(tweet.target_object.text);
   for(var i = 0; i < Object.keys(tweets).length; i++){
-    console.log(tweets[Object.keys(tweets)[i]]);
-    console.log("ouch");
     if(tweet.target_object.text == tweets[Object.keys(tweets)[i]].text){
-      tweets[Object.keys(tweets[i])].fitness++;
+      console.log(tweets[Object.keys(tweets)[i]]);
+      if(tweet.source.screen_name.toLowerCase() != "lmao_ian") tweets[Object.keys(tweets[i])].fitness++;
+      else tweets[Object.keys(tweets[i])].fitness+=5;
       saveTweets();
       break;
     }
@@ -274,7 +274,22 @@ userStream.on('favorite',(tweet) => {
 });
 
 userStream.on('user_event',(obj) => {
-  console.log("Event!");
+  console.log('event');
+  if(obj.event == 'favorite'){
+    var tweet = obj;
+    console.log('here');
+    console.log(tweet.target_object.text);
+    for(var i = 0; i < Object.keys(tweets).length; i++){
+      if(tweet.target_object.text.trim() == tweets[Object.keys(tweets)[i]].text.trim()){
+        console.log(tweets[Object.keys(tweets)[i]]);
+        if(tweet.source.screen_name.toLowerCase() != "lmao_ian") tweets[Object.keys(tweets)[i]].fitness++;
+        else tweets[Object.keys(tweets)[i]].fitness+=5;
+        saveTweets();
+        break;
+      }
+    }
+  }
+
 });
 
 function askQuestion(question){
@@ -283,8 +298,62 @@ function askQuestion(question){
       directedScramble(config.users[Math.floor((Math.random()*config.users.length))]);
     }else if(ans === 'stop'){
       process.exit();
-    }else if(ans === 'genetic'){
-
+    }else if(ans.includes('genetic ')){
+      var args = ans.split(" ")[1];
+      var rTweets = [];
+      var keys = Object.keys(tweets);
+      for(var i = 0; i < Object.keys(tweets).length; i++){
+        if(tweets[keys[i]].user == args && tweets[keys[i]].fitness > 0) rTweets.push(tweets[keys[i]]);
+      }
+      var lengthh = rTweets.length;
+      var num1 = Math.floor(Math.random()*lengthh);
+      var num2 = Math.floor(Math.random()*lengthh);
+      var tries = 0;
+      while(num1 == num2){
+        console.log(rTweets.length);
+        num1 = Math.floor(Math.random()*lengthh);
+        tries++;
+        if(tries >= 10000) break;
+      }
+      console.log(num1);
+      console.log(num2);
+      if(tweetObjects[rTweets[num1].id] !== undefined && tweetObjects[rTweets[num2].id] !== undefined){
+        tweetObjects[rTweets[num1].id].breed(tweetObjects[rTweets[num2].id]);
+      }else{
+        var obj1 = rTweets[num1];
+        var obj2 = rTweets[num2];
+        console.log(obj1);
+        console.log(obj2);
+        tweetObjects[rTweets[num1].id] = new GeneticTweet(obj1.num1,obj1.num2,obj1.num3,obj1.id,obj1.user,obj1.text);
+        tweetObjects[rTweets[num1].id].fitness = obj1.fitness;
+        tweetObjects[rTweets[num2].id] = new GeneticTweet(obj2.num1,obj2.num2,obj2.num3,obj2.id,obj2.user,obj2.text);
+        tweetObjects[rTweets[num2].id].fitness = obj2.fitness;
+        tweetObjects[rTweets[num1].id].breed(tweetObjects[rTweets[num2]]);
+      }
+      geneticScramble(tweetObjects[rTweets[num1].id]);
+    }else if(ans.includes('list ')){
+      var args = ans.split(' ')[1];
+      var rTweets = [];
+      var keys = Object.keys(tweets);
+      for(var i = 0; i < keys.length; i++){
+        if(tweets[keys[i]].user == args) rTweets.push(tweets[keys[i]]);
+      }
+      console.log(rTweets);
+    }else if(ans.includes('fit ')){
+      var arg1 = ans.split(' ')[1];
+      var arg2 = ans.split(' ')[2];
+      var keys = Object.keys(tweets);
+      for(var i = 0; i < keys.length; i++){
+        if(tweets[keys[i]].id == arg1){
+          tweets[keys[i]].fitness = +arg2;
+          console.log(tweets[keys[i]]);
+          saveTweets();
+          break;
+        }
+      }
+    }else if(ans.includes('from ')){
+      var args = ans.split(' ')[1];
+      directedScramble(args);
     }else{
       console.log("invalid command");
     }
